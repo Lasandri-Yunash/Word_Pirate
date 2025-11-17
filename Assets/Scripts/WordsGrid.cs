@@ -14,7 +14,66 @@ public class WordsGrid : MonoBehaviour
 
     private List<GameObject> _squareList = new List<GameObject>();
 
+    private void Start()
+    {
+        SpawnGridSquares();
+        SetSquarePosition();
+    }
 
+    private void SetSquarePosition()
+    {
+        var squareRect = _squareList[0].GetComponent<SpriteRenderer>().sprite.rect;
+        var squareTranform = _squareList[0].GetComponent<Transform>();
+
+        var offset = new Vector2
+        {
+            x = (squareRect.width * squareTranform.localScale.x + squareOffset) * 0.01f,
+            y = (squareRect.height * squareTranform.localScale.y + squareOffset) * 0.01f
+
+        };
+
+        var startPosition = GetFirstSquarePosition();
+
+        int coloumnNumber = 0;
+        int rowNumber = 0;
+
+        foreach(var square in _squareList)
+        {
+            if(rowNumber +1 > currentGameDta.setectedboardData.Rows)
+            {
+                coloumnNumber++;
+                rowNumber = 0;
+
+            }
+
+            var positioNX = startPosition.x + offset.x * coloumnNumber;
+            var positioNY = startPosition.y - offset.y * rowNumber;
+
+            square.GetComponent<Transform>().position = new Vector2(positioNX,positioNY);
+            rowNumber++;
+        }
+
+    }
+
+    private Vector2 GetFirstSquarePosition()
+    {
+        var startPosition = new Vector2(0f, transform.position.y);
+        var squareRect = _squareList[0].GetComponent<SpriteRenderer>().sprite.rect;
+        var squareTransform = _squareList[0].GetComponent<Transform>();
+        var squareSize = new Vector2(0f, 0f);
+
+
+        squareSize.x = squareRect.width * squareTransform.localScale.x; ;
+        squareSize.y = squareRect.height * squareTransform.localScale.y; ;
+
+        var midWidthPosition = (((currentGameDta.setectedboardData.Columns -1) *squareSize.x) / 2) * 0.01f;
+        var midHightPosition = (((currentGameDta.setectedboardData.Rows -1) * squareSize.y) / 2) * 0.01f;
+
+        startPosition.x = (midWidthPosition != 0) ? midWidthPosition * -1 : midWidthPosition;
+        startPosition.y += midHightPosition;
+
+        return startPosition;
+    }
     private void SpawnGridSquares()
     {
 
@@ -30,7 +89,7 @@ public class WordsGrid : MonoBehaviour
                     var selectedLetterData = alphabetData.AlphaHightlighted.Find(data => data.letter == squareLetter);
                     var correctLetterData = alphabetData.AlphaWrong.Find(data => data.letter == squareLetter);
 
-                    if(normalLetterData.image ==null || selectedLetterData == null)
+                    if(normalLetterData.image ==null || selectedLetterData.image == null)
                     {
                         Debug.LogError("All feild in your array should have some Letters. Presss fill up with random button in board data to add random Letters : letter : " + squareLetter);
 #if UNITY_EDITOR
@@ -44,8 +103,15 @@ public class WordsGrid : MonoBehaviour
                     else
                     {
                         _squareList.Add(Instantiate(gridSquarePrefab));
+                        _squareList[_squareList.Count -1].GetComponent<GridSquare>().SetSprite(normalLetterData, correctLetterData,selectedLetterData);
+                        _squareList[_squareList.Count - 1].transform.SetParent(this.transform);
+                        _squareList[_squareList.Count - 1].GetComponent<Transform>().position = new Vector3(0f,0f,0f);
+                        _squareList[_squareList.Count - 1].transform.localScale = squareScale;
+
 
                     }
+
+
                 }
             }
 
